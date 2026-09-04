@@ -1,0 +1,43 @@
+operix/
+│
+├── src/
+│   ├── server.js
+│   │
+│   ├── config/
+│   │   └── database.js
+│   │
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── users.routes.js
+│   │   └── ...
+│   │
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   └── users.controller.js
+│   │
+│   ├── services/
+│   │   ├── auth.service.js
+│   │   └── users.service.js
+│   │
+│   ├── models/
+│   │   ├── User.js
+│   │   └── ...
+│   │
+│   └── middlewares/
+│       └── auth.middleware.js
+│
+├── public/
+│   ├── assets/
+│   ├── css/
+│   └── js/
+│
+├── views/
+│   ├── login.html
+│   ├── dashboard.html
+│   └── ...
+│
+├── uploads/
+│
+├── .env
+├── .gitignore
+└── package.json
