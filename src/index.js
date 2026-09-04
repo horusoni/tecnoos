@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { cadastro, landingPage, login } from "./routers/publicas.js";
+import { cadastroPage, landingPage, loginPage, painelPage } from "./routers/publicas.js";
 
 const PORT = 4444;
 
@@ -14,8 +14,9 @@ const app = express();
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.get("/", landingPage);
-app.get("/login", login);
-app.get("/cadastro", cadastro);
+app.get("/login", loginPage);
+app.get("/cadastro", cadastroPage);
+app.get("/painel", painelPage)
 
 app.listen(PORT, () => {
     console.log(`http://localhost:${PORT}`);

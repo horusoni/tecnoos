@@ -10,15 +10,22 @@ export async function landingPage(req, res) {
         path.join(__dirname, "../../views/landing.html")
 )}
 
-export async function login(req, res) {
+export async function loginPage(req, res) {
     res.sendFile(
         path.join(__dirname,"../../views/login.html")
     )
 }
 
-export async function cadastro(req, res) {
+export async function cadastroPage(req, res) {
     res.sendFile(
         path.join(__dirname, "../../views/cadastro.html")
+    )
+}
+
+
+export async function painelPage(req, res) {
+    res.sendFile(
+        path.join(__dirname, "../../views/painel.html")
     )
 }
 

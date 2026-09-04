@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TECNOOS · Painel Administrativo</title>
+<style>
+  /* ============================================================
+     1. DESIGN TOKENS
+     ============================================================ */
+  :root{
+    --purple:        #6C3BFF;
+    --purple-deep:    #3B1D8F;
+    --blue:           #2563EB;
+    --bg-dark:        #09090B;
+    --bg-app:         #F8FAFC;
+    --white:          #FFFFFF;
+    --text-primary:   #111827;
+    --text-secondary: #64748B;
+
+    --gradient: linear-gradient(135deg, var(--purple), var(--blue));
+
+    --border:         #E5E9F0;
+    --border-soft:    #EEF1F6;
+    --surface:        #FFFFFF;
+    --surface-hover:  #F1F0FF;
+    --active-bg:      rgba(108, 59, 255, 0.08);
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    --sidebar-w: 264px;
+    --sidebar-w-collapsed: 76px;
+    --header-h: 64px;
+
+    --ease: cubic-bezier(.4,0,.2,1);
+    --speed-fast: 150ms;
+    --speed-med: 220ms;
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family: var(--font);
+    background: var(--bg-app);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  button{ font-family: inherit; }
+  ul{ list-style:none; margin:0; padding:0; }
+  a{ color:inherit; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--purple);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ============================================================
+     2. APP SHELL
+     ============================================================ */
+  .app-shell{
+    display:flex;
+    min-height:100vh;
+    width:100%;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    --w: var(--sidebar-w);
+    width: var(--w);
+    flex-shrink:0;
+    background: var(--bg-dark);
+    color: #E4E4E7;
+    display:flex;
+    flex-direction:column;
+    position: sticky;
+    top:0;
+    height:100vh;
+    z-index: 40;
+    transition: width var(--speed-med) var(--ease), transform var(--speed-med) var(--ease);
+  }
+  .sidebar.is-collapsed{ --w: var(--sidebar-w-collapsed); }
+
+  .sidebar-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 18px 20px;
+    min-height: var(--header-h);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .brand-mark{
+    width:32px; height:32px; flex-shrink:0;
+    border-radius: 9px;
+    background: var(--gradient);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; color:#fff;
+  }
+  .brand-text{
+    display:flex; flex-direction:column; line-height:1.15;
+    white-space:nowrap; overflow:hidden;
+    opacity:1; transition: opacity var(--speed-fast) var(--ease);
+  }
+  .sidebar.is-collapsed .brand-text{ opacity:0; width:0; }
+  .brand-text strong{ font-size:14.5px; font-weight:650; letter-spacing:0.2px; color:#fff; }
+  .brand-text span{ font-size:11.5px; color:#8B8B95; }
+
+  .sidebar-nav{
+    flex:1;
+    overflow-y:auto;
+    padding: 14px 12px;
+    display:flex;
+    flex-direction:column;
+    gap: 20px;
+  }
+  .nav-group-label{
+    font-size: 11px;
+    font-weight: 600;
+    color: #6B6B76;
+    padding: 0 10px 6px;
+    white-space:nowrap;
+    overflow:hidden;
+    height: 17px;
+    transition: opacity var(--speed-fast) var(--ease);
+  }
+  .sidebar.is-collapsed .nav-group-label{ opacity:0; }
+
+  .nav-list{ display:flex; flex-direction:column; gap:2px; }
+
+  .nav-item{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    padding: 9px 10px;
+    background:transparent;
+    border:none;
+    border-radius: var(--radius-md);
+    color:#C4C4CD;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor:pointer;
+    text-align:left;
+    white-space:nowrap;
+    overflow:hidden;
+    transition: background var(--speed-fast) var(--ease), color var(--speed-fast) var(--ease);
+  }
+  .nav-item:hover{ background: rgba(255,255,255,0.06); color:#fff; }
+  .nav-item .nav-icon{
+    width:18px; height:18px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .nav-item .nav-icon svg{ width:18px; height:18px; }
+  .nav-item .nav-label{
+    overflow:hidden; text-overflow:ellipsis;
+    transition: opacity var(--speed-fast) var(--ease);
+  }
+  .sidebar.is-collapsed .nav-item .nav-label{ opacity:0; width:0; }
+  .sidebar.is-collapsed .nav-item{ justify-content:center; padding:9px; }
+
+  .nav-item[aria-current="page"]{
+    background: rgba(108, 59, 255, 0.18);
+    color:#fff;
+  }
+  .nav-item[aria-current="page"]::before{
+    content:"";
+    position:absolute;
+    left:-12px; top:50%;
+    transform: translateY(-50%);
+    width:3px; height:18px;
+    border-radius: 3px;
+    background: var(--gradient);
+  }
+  .sidebar.is-collapsed .nav-item[aria-current="page"]::before{ left:0; }
+
+  /* tooltip for collapsed state */
+  .nav-item .nav-tooltip{
+    position:absolute;
+    left: calc(100% + 10px);
+    top:50%;
+    transform: translateY(-50%) scale(0.96);
+    background: #18181B;
+    color:#fff;
+    font-size:12px;
+    font-weight:500;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    white-space:nowrap;
+    pointer-events:none;
+    opacity:0;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    transition: opacity var(--speed-fast) var(--ease), transform var(--speed-fast) var(--ease);
+    z-index: 50;
+  }
+  .sidebar.is-collapsed .nav-item:hover .nav-tooltip{
+    opacity:1; transform: translateY(-50%) scale(1);
+  }
+  .sidebar:not(.is-collapsed) .nav-tooltip{ display:none; }
+
+  .sidebar-footer{
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 12px;
+    display:flex;
+    flex-direction:column;
+    gap: 8px;
+  }
+  .collapse-toggle{
+    display:flex; align-items:center; gap:10px;
+    width:100%;
+    background:transparent; border:none;
+    color:#9797A3;
+    font-size:12.5px; font-weight:500;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    cursor:pointer;
+    white-space:nowrap; overflow:hidden;
+  }
+  .collapse-toggle:hover{ background: rgba(255,255,255,0.06); color:#fff; }
+  .collapse-toggle svg{ width:16px; height:16px; flex-shrink:0; transition: transform var(--speed-med) var(--ease); }
+  .sidebar.is-collapsed .collapse-toggle svg{ transform: rotate(180deg); }
+  .collapse-toggle .collapse-label{ transition: opacity var(--speed-fast) var(--ease); }
+  .sidebar.is-collapsed .collapse-toggle{ justify-content:center; }
+  .sidebar.is-collapsed .collapse-toggle .collapse-label{ opacity:0; width:0; }
+
+  .profile-card{
+    display:flex; align-items:center; gap:10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+  }
+  .sidebar.is-collapsed .profile-card{ justify-content:center; padding:8px; }
+  .avatar{
+    width:32px; height:32px; border-radius:50%;
+    background: var(--gradient);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12.5px; font-weight:650; color:#fff;
+    flex-shrink:0;
+  }
+  .profile-meta{ overflow:hidden; white-space:nowrap; transition: opacity var(--speed-fast) var(--ease); }
+  .sidebar.is-collapsed .profile-meta{ opacity:0; width:0; }
+  .profile-meta strong{ display:block; font-size:12.5px; color:#fff; }
+  .profile-meta span{ display:block; font-size:11px; color:#8B8B95; }
+
+  /* mobile overlay */
+  .sidebar-overlay{
+    position:fixed; inset:0;
+    background: rgba(9,9,11,0.55);
+    z-index: 35;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity var(--speed-med) var(--ease);
+  }
+  .sidebar-overlay.is-visible{ opacity:1; pointer-events:auto; }
+
+  /* ---------- MAIN COLUMN ---------- */
+  .main-column{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .app-header{
+    height: var(--header-h);
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 16px;
+    padding: 0 20px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top:0;
+    z-index: 20;
+  }
+  .header-left{ display:flex; align-items:center; gap:14px; min-width:0; }
+  .icon-btn{
+    display:flex; align-items:center; justify-content:center;
+    width:36px; height:36px;
+    border-radius: var(--radius-md);
+    border:1px solid transparent;
+    background:transparent;
+    color: var(--text-secondary);
+    cursor:pointer;
+    flex-shrink:0;
+    transition: background var(--speed-fast) var(--ease), color var(--speed-fast) var(--ease);
+  }
+  .icon-btn:hover{ background: var(--surface-hover); color: var(--purple); }
+  .icon-btn svg{ width:19px; height:19px; }
+  .mobile-menu-btn{ display:none; }
+
+  .breadcrumb{
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    min-width:0;
+  }
+  .breadcrumb strong{ color: var(--text-primary); font-weight: 600; }
+
+  .header-right{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .notif-dot{
+    position:absolute;
+    top:6px; right:6px;
+    width:7px; height:7px;
+    border-radius:50%;
+    background: var(--blue);
+    border: 1.5px solid var(--white);
+  }
+  .icon-btn.has-notif{ position:relative; }
+
+  .header-user{
+    display:flex; align-items:center; gap:8px;
+    padding: 5px 10px 5px 5px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    cursor:pointer;
+  }
+  .header-user:hover{ background: var(--surface-hover); }
+  .header-user .avatar{ width:26px; height:26px; font-size:10.5px; }
+  .header-user span{ font-size:13px; font-weight:600; color: var(--text-primary); }
+
+  /* ---------- CONTENT ---------- */
+  .main-content{
+    flex:1;
+    padding: 28px 32px 48px;
+    max-width: 1180px;
+    width:100%;
+  }
+
+  .view{
+    animation: view-in var(--speed-med) var(--ease);
+  }
+  @keyframes view-in{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .view-header{ margin-bottom: 20px; }
+  .view-header h1{
+    font-size: 21px;
+    font-weight: 650;
+    letter-spacing: -0.2px;
+    margin: 0 0 4px;
+  }
+  .view-header p{
+    margin:0;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+  }
+
+  .placeholder-panel{
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    padding: 48px 32px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap: 10px;
+  }
+  .placeholder-panel .ph-icon{
+    width:40px; height:40px;
+    border-radius: var(--radius-md);
+    background: var(--active-bg);
+    color: var(--purple);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom: 6px;
+  }
+  .placeholder-panel .ph-icon svg{ width:20px; height:20px; }
+  .placeholder-panel h2{ font-size: 15px; font-weight:650; margin:0; }
+  .placeholder-panel p{
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    max-width: 460px;
+    line-height:1.55;
+    margin:0;
+  }
+  .placeholder-panel code{
+    font-size: 12px;
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--purple-deep);
+  }
+
+  /* ============================================================
+     3. RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1024px){
+    .main-content{ padding: 22px 20px 40px; }
+  }
+
+  @media (max-width: 860px){
+    .sidebar{
+      position: fixed;
+      left:0; top:0;
+      transform: translateX(-100%);
+      width: var(--sidebar-w) !important;
+    }
+    .sidebar.is-open{ transform: translateX(0); }
+    .sidebar .nav-label, .sidebar .brand-text, .sidebar .collapse-label, .sidebar .profile-meta{
+      opacity:1 !important; width:auto !important;
+    }
+    .sidebar .nav-tooltip{ display:none !important; }
+    .collapse-toggle{ display:none; }
+    .mobile-menu-btn{ display:flex; }
+    .header-user span{ display:none; }
+    .breadcrumb span.crumb-root{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+    <div class="sidebar-brand">
+      <div class="brand-mark" aria-hidden="true">T</div>
+      <div class="brand-text">
+        <strong>TECNOOS</strong>
+        <span>Painel administrativo</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav"><!-- populated by navigation.js --></nav>
+
+    <div class="sidebar-footer">
+      <button class="collapse-toggle" id="collapseToggle" type="button" aria-label="Recolher menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
+        <span class="collapse-label">Recolher menu</span>
+      </button>
+      <div class="profile-card">
+        <div class="avatar" aria-hidden="true">JP</div>
+        <div class="profile-meta">
+          <strong>João Pereira</strong>
+          <span>Administrador</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ============================================================
+       MAIN COLUMN
+       ============================================================ -->
+  <div class="main-column">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="icon-btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="breadcrumb" id="breadcrumb"><span class="crumb-root">TECNOOS</span> / <strong id="breadcrumbCurrent">Visão Geral</strong></div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn has-notif" aria-label="Notificações">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="notif-dot" aria-hidden="true"></span>
+        </button>
+        <button class="header-user" aria-label="Menu do usuário">
+          <div class="avatar" aria-hidden="true">JP</div>
+          <span>João Pereira</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent" aria-live="polite">
+      <!-- views are rendered here by navigation.js -->
+    </main>
+  </div>
+
+</div>
+
+<script>
+/* ==================================================================
+   TECNOOS · ADMIN PANEL — NAVIGATION CORE
+   ------------------------------------------------------------------
+   Estrutura:
+     1. Ícones (SVG reutilizáveis)
+     2. Configuração do menu (grupos + itens)
+     3. Registro de views (título + render)
+     4. Motor de navegação (troca de view, estado ativo, breadcrumb)
+     5. Sidebar (colapsar / overlay mobile)
+     6. Inicialização
+   ================================================================== */
+
+(function () {
+  "use strict";
+
+  /* ----------------------------------------------------------------
+     1. ÍCONES
+     Cada função retorna uma string SVG. Adicione novos ícones aqui
+     conforme necessário para novos itens de menu.
+  ---------------------------------------------------------------- */
+  const Icons = {
+    overview:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+    orders:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 3H8l1-3z"/><rect x="5" y="6" width="14" height="15" rx="2"/><path d="M9 12h6M9 16h4"/></svg>',
+    inventory:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
+    sales:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.6 12.4a2 2 0 002 1.6h8.8a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>',
+    clients:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0113 0"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15.5 13.2a5.4 5.4 0 016 5.3"/></svg>',
+    finance:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.3a2.3 2.3 0 012.3-1.3h.6a2.1 2.1 0 010 4.2h-.8a2.1 2.1 0 000 4.2h.6a2.3 2.3 0 002.3-1.3"/></svg>',
+    team:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M2.5 20a5.7 5.7 0 0111 0"/><path d="M14.5 20a4.8 4.8 0 019 0"/></svg>',
+    reports:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>',
+    settings:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 000-3l2-1.5-2-3.4-2.3.9a7.5 7.5 0 00-2.6-1.5L14 2h-4l-.5 2.5a7.5 7.5 0 00-2.6 1.5l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 000 3l-2 1.5 2 3.4 2.3-.9a7.5 7.5 0 002.6 1.5L10 22h4l.5-2.5a7.5 7.5 0 002.6-1.5l2.3.9 2-3.4-2-1.5z"/></svg>',
+    placeholder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>'
+  };
+
+  /* ----------------------------------------------------------------
+     2. CONFIGURAÇÃO DO MENU
+     Para adicionar um novo item de menu:
+       1. Escolha (ou crie) um ícone em `Icons`.
+       2. Adicione um objeto { id, label, icon } dentro do grupo certo
+          (ou crie um novo grupo).
+       3. Registre a view correspondente em `ViewRegistry` (seção 3).
+     O `id` deve ser único e é o mesmo usado como chave em ViewRegistry.
+  ---------------------------------------------------------------- */
+  const MenuConfig = [
+    {
+      group: "Principal",
+      items: [
+        { id: "overview", label: "Visão Geral",        icon: "overview" },
+        { id: "orders",   label: "Ordens de Serviço",   icon: "orders" },
+        { id: "inventory",label: "Estoque",             icon: "inventory" },
+        { id: "sales",    label: "Vendas",              icon: "sales" },
+        { id: "clients",  label: "Clientes",            icon: "clients" }
+      ]
+    },
+    {
+      group: "Gestão",
+      items: [
+        { id: "finance",  label: "Financeiro",          icon: "finance" },
+        { id: "team",     label: "Equipe",              icon: "team" },
+        { id: "reports",  label: "Relatórios",          icon: "reports" }
+      ]
+    },
+    {
+      group: "Sistema",
+      items: [
+        { id: "settings", label: "Configurações",       icon: "settings" }
+      ]
+    }
+  ];
+
+  /* ----------------------------------------------------------------
+     3. REGISTRO DE VIEWS
+     Cada view tem: title (usado no breadcrumb/título) e render
+     (função que devolve o HTML da área de conteúdo).
+     Por enquanto todas usam o mesmo placeholder — troque `render`
+     por conteúdo real quando for desenvolver o módulo.
+  ---------------------------------------------------------------- */
+  function placeholderView(label, description) {
+    return `
+      <div class="view-header">
+        <h1>${label}</h1>
+        <p>${description}</p>
+      </div>
+      <div class="placeholder-panel">
+        <div class="ph-icon">${Icons.placeholder}</div>
+        <h2>Módulo ainda não desenvolvido</h2>
+        <p>Esta é apenas a estrutura de entrada para <code>${label}</code>. O conteúdo deste módulo será implementado posteriormente.</p>
+      </div>`;
+  }
+
+  const ViewRegistry = {
+    overview: {
+      title: "Visão Geral",
+      render: () => placeholderView("Visão Geral", "Resumo geral das operações da TECNOOS.")
+    },
+    orders: {
+      title: "Ordens de Serviço",
+      render: () => placeholderView("Ordens de Serviço", "Gestão das ordens de serviço em andamento e concluídas.")
+    },
+    inventory: {
+      title: "Estoque",
+      render: () => placeholderView("Estoque", "Controle de itens, quantidades e movimentações de estoque.")
+    },
+    sales: {
+      title: "Vendas",
+      render: () => placeholderView("Vendas", "Acompanhamento de pedidos e desempenho de vendas.")
+    },
+    clients: {
+      title: "Clientes",
+      render: () => placeholderView("Clientes", "Cadastro e histórico de relacionamento com clientes.")
+    },
+    finance: {
+      title: "Financeiro",
+      render: () => placeholderView("Financeiro", "Contas a pagar, a receber e fluxo de caixa.")
+    },
+    team: {
+      title: "Equipe",
+      render: () => placeholderView("Equipe", "Gestão de colaboradores, permissões e escalas.")
+    },
+    reports: {
+      title: "Relatórios",
+      render: () => placeholderView("Relatórios", "Relatórios consolidados dos módulos do sistema.")
+    },
+    settings: {
+      title: "Configurações",
+      render: () => placeholderView("Configurações", "Preferências gerais e configurações da conta.")
+    }
+  };
+
+  /*
+    EXEMPLO — como adicionar o menu "Fornecedores" no futuro:
+
+    1) Em MenuConfig, dentro do grupo desejado:
+         { id: "suppliers", label: "Fornecedores", icon: "team" }
+
+    2) Em ViewRegistry:
+         suppliers: {
+           title: "Fornecedores",
+           render: () => "<div>...conteúdo real aqui...</div>"
+         }
+
+    O sistema de navegação reconhece a nova view automaticamente,
+    sem precisar alterar nenhum outro arquivo.
+  */
+
+  /* ----------------------------------------------------------------
+     4. MOTOR DE NAVEGAÇÃO
+  ---------------------------------------------------------------- */
+  const sidebarNav      = document.getElementById("sidebarNav");
+  const mainContent     = document.getElementById("mainContent");
+  const breadcrumbTitle = document.getElementById("breadcrumbCurrent");
+  const DEFAULT_VIEW    = "overview";
+  const STORAGE_KEY     = "tecnoos.activeView";
+
+  function buildSidebarMenu() {
+    const fragment = document.createDocumentFragment();
+
+    MenuConfig.forEach(group => {
+      const label = document.createElement("div");
+      label.className = "nav-group-label";
+      label.textContent = group.group;
+      fragment.appendChild(label);
+
+      const list = document.createElement("ul");
+      list.className = "nav-list";
+
+      group.items.forEach(item => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nav-item";
+        btn.dataset.view = item.id;
+        btn.setAttribute("aria-label", item.label);
+        btn.innerHTML = `
+          <span class="nav-icon" aria-hidden="true">${Icons[item.icon] || Icons.placeholder}</span>
+          <span class="nav-label">${item.label}</span>
+          <span class="nav-tooltip">${item.label}</span>
+        `;
+        btn.addEventListener("click", () => navigateTo(item.id));
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+
+      fragment.appendChild(list);
+    });
+
+    sidebarNav.innerHTML = "";
+    sidebarNav.appendChild(fragment);
+  }
+
+  function setActiveMenuItem(viewId) {
+    sidebarNav.querySelectorAll(".nav-item").forEach(btn => {
+      const isActive = btn.dataset.view === viewId;
+      if (isActive) btn.setAttribute("aria-current", "page");
+      else btn.removeAttribute("aria-current");
+    });
+  }
+
+  function renderView(viewId) {
+    const view = ViewRegistry[viewId] || ViewRegistry[DEFAULT_VIEW];
+    mainContent.innerHTML = `<div class="view">${view.render()}</div>`;
+    breadcrumbTitle.textContent = view.title;
+    document.title = `TECNOOS · ${view.title}`;
+  }
+
+  function navigateTo(viewId, options) {
+    options = options || {};
+    if (!ViewRegistry[viewId]) viewId = DEFAULT_VIEW;
+
+    setActiveMenuItem(viewId);
+    renderView(viewId);
+
+    if (!options.skipHistory) {
+      history.replaceState(null, "", "#" + viewId);
+    }
+    try { localStorage.setItem(STORAGE_KEY, viewId); } catch (e) { /* storage indisponível */ }
+
+    closeMobileSidebar();
+  }
+
+  function resolveInitialView() {
+    const fromHash = location.hash ? location.hash.slice(1) : "";
+    if (fromHash && ViewRegistry[fromHash]) return fromHash;
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored && ViewRegistry[stored]) return stored;
+    } catch (e) { /* storage indisponível */ }
+
+    return DEFAULT_VIEW;
+  }
+
+  window.addEventListener("hashchange", () => {
+    const viewId = location.hash.slice(1);
+    if (ViewRegistry[viewId]) navigateTo(viewId, { skipHistory: true });
+  });
+
+  /* ----------------------------------------------------------------
+     5. SIDEBAR — colapsar (desktop) e overlay (mobile)
+  ---------------------------------------------------------------- */
+  const sidebar         = document.getElementById("sidebar");
+  const collapseToggle  = document.getElementById("collapseToggle");
+  const mobileMenuBtn   = document.getElementById("mobileMenuBtn");
+  const sidebarOverlay  = document.getElementById("sidebarOverlay");
+  const COLLAPSE_KEY    = "tecnoos.sidebarCollapsed";
+
+  function toggleCollapse() {
+    const collapsed = sidebar.classList.toggle("is-collapsed");
+    collapseToggle.setAttribute("aria-label", collapsed ? "Expandir menu" : "Recolher menu");
+    try { localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "0"); } catch (e) {}
+  }
+
+  function openMobileSidebar() {
+    sidebar.classList.add("is-open");
+    sidebarOverlay.classList.add("is-visible");
+    mobileMenuBtn.setAttribute("aria-expanded", "true");
+  }
+
+  function closeMobileSidebar() {
+    sidebar.classList.remove("is-open");
+    sidebarOverlay.classList.remove("is-visible");
+    mobileMenuBtn.setAttribute("aria-expanded", "false");
+  }
+
+  collapseToggle.addEventListener("click", toggleCollapse);
+  mobileMenuBtn.addEventListener("click", openMobileSidebar);
+  sidebarOverlay.addEventListener("click", closeMobileSidebar);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeMobileSidebar();
+  });
+
+  /* ----------------------------------------------------------------
+     6. INICIALIZAÇÃO
+  ---------------------------------------------------------------- */
+  function init() {
+    buildSidebarMenu();
+
+    try {
+      if (localStorage.getItem(COLLAPSE_KEY) === "1") {
+        sidebar.classList.add("is-collapsed");
+      }
+    } catch (e) {}
+
+    navigateTo(resolveInitialView(), { skipHistory: true });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
